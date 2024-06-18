@@ -209,7 +209,6 @@ input:focus {
   width: 100%;
   max-height: 70px;
   white-space: pre-wrap;
-  box-sizing: border-box;
   word-wrap: break-word;
   overflow: hidden;
 }
@@ -237,7 +236,6 @@ input:focus {
 
 .edit {
   margin-right: 10px;
-
   padding: 3px 8px;
   width: 50px;
   text-align: center;
@@ -248,4 +246,12 @@ input:focus {
   font-weight: 600;
   cursor: pointer;
   font-size: 14px;
+}
+
+@media (max-width: 425px) {
+  .task {
+    font-size: 12px;
+    max-width: 140px;
+    max-height: 70px;
+  }
 }
