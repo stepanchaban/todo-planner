@@ -1,48 +1,60 @@
-const ToDoList = [];
+const toDoList = [];
 
-function getDomElement() {
-  return {
-    blockWithToDo: document.getElementById('list-container'),
-    inputForPushedToDo: document.getElementById('input-box'),
-    buttonCreate: document.querySelector('.main__form-btn'),
-    task: document.getElementById('task')
-  };
+function getBlockWithToDo() {
+  return document.getElementById('list-container');
+}
+
+function getInputForPushedToDo() {
+  return document.getElementById('input-box');
+}
+
+function getButtonCreate() {
+  return document.querySelector('.main__form-btn');
+}
+
+function getTask() {
+  return document.getElementById('task');
 }
 
 function deleteToDo(id) {
-  const index = ToDoList.findIndex(item => item.id == id);
+  const index = toDoList.findIndex(item => item.id === id);
   if (index !== -1) {
-    ToDoList.splice(index, 1);
-    saveInStore(ToDoList);
+    toDoList.splice(index, 1);
+    saveToDoListInStore(toDoList);
   }
-  return ToDoList;
+  return toDoList;
 }
 
-function getLocalStore() {
-  const data = localStorage.getItem('ToDoList');
-  return data ? JSON.parse(data) : [];
+function getStoredToDoList() {
+  try {
+    const data = localStorage.getItem('toDoList');
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error('Error parsing local storage data:', e);
+    return [];
+  }
 }
 
-function saveInStore(db) {
-  localStorage.setItem('ToDoList', JSON.stringify(db));
+function saveToDoListInStore(toDoList) {
+  localStorage.setItem('toDoList', JSON.stringify(toDoList));
 }
 
-function setToDo(value) {
-  const addToDoObject = {
-    id: `${ToDoList.length + 1}`,
-    name: value,
-    status: false
+function addNewToDo(taskName) {
+  const newToDo = {
+    id: `${toDoList.length + 1}`,
+    taskName,
+    isCompleted: false
   };
-  ToDoList.push(addToDoObject);
-  saveInStore(ToDoList);
-  return ToDoList;
+  toDoList.push(newToDo);
+  saveToDoListInStore(toDoList);
+  return toDoList;
 }
 
-function updateStatus(id) {
-  const index = ToDoList.findIndex(el => el.id === id);
+function toggleToDoStatus(id) {
+  const index = toDoList.findIndex(el => el.id === id);
   if (index !== -1) {
-    ToDoList[index].status = !ToDoList[index].status;
-    saveInStore(ToDoList);
+    toDoList[index].isCompleted = !toDoList[index].isCompleted;
+    saveToDoListInStore(toDoList);
   }
 }
 
@@ -51,15 +63,15 @@ function addToDoHTML(todo) {
     <div class="checkbox-container">
       <input type="checkbox" id="round-checkbox-${
         todo.id
-      }" class="round-checkbox" ${todo.status ? 'checked' : ''} />
+      }" class="round-checkbox" ${todo.isCompleted ? 'checked' : ''} />
       <label for="round-checkbox-${
         todo.id
       }" class="round-checkbox-label"></label>
     </div>
     <div class="task-container">
       <div id="task-${todo.id}" class="task ${
-    todo.status ? 'completed' : ''
-  }" contenteditable="true">${todo.name}</div>
+    todo.isCompleted ? 'completed' : ''
+  }" contenteditable="true">${todo.taskName}</div>
     </div>
     <div class="actions">
       <button class="edit">Edit</button>
@@ -78,27 +90,28 @@ const withoutToDoHTML = `
     </li>
 `;
 
-function loadContent(content) {
-  const { blockWithToDo } = getDomElement();
+function renderToDoList(content) {
+  const blockWithToDo = getBlockWithToDo();
   blockWithToDo.innerHTML = content;
 }
 
 function renderContent() {
-  if (ToDoList.length === 0) {
-    loadContent(withoutToDoHTML);
+  if (toDoList.length === 0) {
+    renderToDoList(withoutToDoHTML);
   } else {
-    const listToDos = ToDoList.map(addToDoHTML).join('');
-    loadContent(listToDos);
+    const listToDos = toDoList.map(addToDoHTML).join('');
+    renderToDoList(listToDos);
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const { inputForPushedToDo, blockWithToDo } = getDomElement();
+  const inputForPushedToDo = getInputForPushedToDo();
+  const blockWithToDo = getBlockWithToDo();
   const form = document.getElementById('todo-form');
 
-  const storedToDos = getLocalStore();
-  if (storedToDos) {
-    ToDoList.push(...storedToDos);
+  const storedToDos = getStoredToDoList();
+  if (storedToDos.length > 0) {
+    toDoList.push(...storedToDos);
     renderContent();
   }
 
@@ -108,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Ты должен вписать задачу!');
       return;
     }
-    setToDo(inputForPushedToDo.value.trim());
+    addNewToDo(inputForPushedToDo.value.trim());
     inputForPushedToDo.value = '';
     renderContent();
     updateTaskStats();
@@ -123,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateTaskStats();
     } else if (target.classList.contains('round-checkbox')) {
       const id = target.id.split('-')[2];
-      updateStatus(id);
+      toggleToDoStatus(id);
       renderContent();
       updateTaskStats();
     } else if (target.classList.contains('edit')) {
@@ -141,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updateTaskStats() {
-  const totalTasks = ToDoList.length;
-  const completedTasks = ToDoList.filter(todo => todo.status).length;
+  const totalTasks = toDoList.length;
+  const completedTasks = toDoList.filter(todo => todo.isCompleted).length;
   document.getElementById('total-tasks').textContent = totalTasks;
   document.getElementById('completed-tasks').textContent = completedTasks;
 }
@@ -156,9 +169,9 @@ function handleEditTask(editButton) {
   } else {
     taskElement.setAttribute('readonly', true);
     const id = taskElement.id.split('-')[1];
-    const todo = ToDoList.find(todo => todo.id == id);
-    todo.name = taskElement.textContent.trim();
-    saveInStore(ToDoList);
+    const todo = toDoList.find(todo => todo.id == id);
+    todo.taskName = taskElement.textContent.trim();
+    saveToDoListInStore(toDoList);
     editButton.innerText = 'Edit';
   }
 }
@@ -190,11 +203,11 @@ function handleDrop(event) {
     }
 
     const updatedList = Array.from(target.parentNode.children).map(item =>
-      ToDoList.find(todo => todo.id == item.id)
+      toDoList.find(todo => todo.id == item.id)
     );
-    ToDoList.length = 0;
-    ToDoList.push(...updatedList);
-    saveInStore(ToDoList);
+    toDoList.length = 0;
+    toDoList.push(...updatedList);
+    saveToDoListInStore(toDoList);
   }
 }
 
