@@ -41,7 +41,7 @@ function saveToDoListInStore(toDoList) {
 
 function addNewToDo(taskName) {
   const newToDo = {
-    id: `${toDoList.length + 1}`,
+    id: `${Date.now()}`,
     taskName,
     isCompleted: false
   };
@@ -134,12 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteToDo(id);
       renderContent();
       updateTaskStats();
-    } else if (target.classList.contains('round-checkbox')) {
+    }
+
+    if (target.classList.contains('round-checkbox')) {
       const id = target.id.split('-')[2];
       toggleToDoStatus(id);
       renderContent();
       updateTaskStats();
-    } else if (target.classList.contains('edit')) {
+    }
+
+    if (target.classList.contains('edit')) {
       handleEditTask(target);
     }
   });
