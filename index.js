@@ -1,3 +1,4 @@
+const LOCAL_STORAGE_KEY = 'toDoList';
 const toDoList = [];
 
 function getBlockWithToDo() {
@@ -27,7 +28,7 @@ function deleteToDo(id) {
 
 function getStoredToDoList() {
   try {
-    const data = localStorage.getItem('toDoList');
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
     console.error('Error parsing local storage data:', e);
@@ -36,7 +37,7 @@ function getStoredToDoList() {
 }
 
 function saveToDoListInStore(toDoList) {
-  localStorage.setItem('toDoList', JSON.stringify(toDoList));
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(toDoList));
 }
 
 function addNewToDo(taskName) {
